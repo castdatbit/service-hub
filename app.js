@@ -8,7 +8,7 @@ var activeModel = '';
 var searchQuery = '';
 var currentToken = '';
 var currentUser = { name: '', role: '' };
-var dynamicCats = []; // Stochează categoriile găsite dinamic
+var dynamicCats = [];
 
 var MODELS = [
     'DATECS DP-25 MX', 'DATECS DP-150 MX', 'DATECS WP-50 MX', 'DATECS DP-05 MX',
@@ -33,16 +33,10 @@ var CAT_ICONS = {
 
 function getCatConfig(catName) {
     if (CAT_ICONS[catName]) return Object.assign({}, CAT_ICONS[catName], { name: catName });
-
-    // Verificăm dacă numele categoriei (folderului) începe cu un emoticon (emoji)
     try {
         var match = catName.match(/^([\uD800-\uDBFF][\uDC00-\uDFFF]|\p{Emoji_Presentation}|\p{Emoji}\uFE0F)\s*(.*)$/u);
-        if (match) {
-            return { icon: match[1], cls: 'cat-proceduri', name: match[2].trim() || catName };
-        }
+        if (match) return { icon: match[1], cls: 'cat-proceduri', name: match[2].trim() || catName };
     } catch (e) { }
-
-    // Config default pentru categorii noi găsite în foldere
     return { icon: '📁', cls: 'cat-proceduri', name: catName };
 }
 
@@ -50,7 +44,6 @@ function getCatConfig(catName) {
 //  INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', function () {
-    // Restaurează sesiunea dacă există
     var saved = sessionStorage.getItem('serviceHubSession');
     if (saved) {
         try {
@@ -64,8 +57,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (e) { }
     }
     showLoginView();
-
-    // Login form
     document.getElementById('login-form').addEventListener('submit', handleLogin);
     document.getElementById('password').addEventListener('input', function () {
         this.classList.remove('error');
@@ -85,14 +76,22 @@ function showAppView() {
     document.getElementById('login-view').classList.remove('active');
     document.getElementById('app-view').classList.add('active');
 
-    // Setează info utilizator
+    // Desktop sidebar user info
     document.getElementById('user-name-display').textContent = currentUser.name;
-    document.getElementById('user-role-display').textContent = currentUser.role;
-    document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+    document.getElementById('user-role-display').textContent = currentUser.role || 'tehnician';
+    var initial = currentUser.name.charAt(0).toUpperCase();
+    document.getElementById('user-avatar').textContent = initial;
 
+    // Mobile header user info
+    document.getElementById('mobile-user-avatar').textContent = initial;
+    document.getElementById('mobile-user-avatar').title = currentUser.name;
+
+    // Sync btn - admin only
     var syncBtn = document.getElementById('sync-btn');
-    if (syncBtn) {
-        syncBtn.style.display = 'inline-block';
+    var syncBtnMobile = document.getElementById('sync-btn-mobile');
+    if (currentUser.role && currentUser.role.toLowerCase().includes('Tehnician')) {
+        if (syncBtn) syncBtn.style.display = 'inline-flex';
+        if (syncBtnMobile) syncBtnMobile.style.display = 'inline-flex';
     }
 
     populateModelSelect();
@@ -137,7 +136,7 @@ function handleLogin(e) {
                 btn.disabled = false;
             }
         })
-        .catch(function (err) {
+        .catch(function () {
             showLoginError('Eroare de conexiune. Verificați URL-ul API.');
             btn.textContent = 'Autentificare';
             btn.disabled = false;
@@ -169,24 +168,19 @@ function handleLogout() {
 }
 
 // ============================================================
-//  SYNC FOLDER
+//  SYNC
 // ============================================================
 function handleSync() {
     if (!currentUser.role) return;
     showSpinner(true);
     showToast('Începem sincronizarea cu Drive...', '');
-
     apiCall({ action: 'sync', token: currentToken })
         .then(function (result) {
-            if (result.error) {
-                showSpinner(false);
-                showToast(result.error, 'error');
-                return;
-            }
+            if (result.error) { showSpinner(false); showToast(result.error, 'error'); return; }
             showToast(result.msg, 'success');
             loadDocuments();
         })
-        .catch(function (err) {
+        .catch(function () {
             showSpinner(false);
             showToast('Eroare conexiune sincronizare', 'error');
         });
@@ -234,6 +228,18 @@ function filterModel(model) {
     clearViewer();
 }
 
+// Sincronizare select desktop → mobile
+function syncMobileSelect(value) {
+    var sel = document.getElementById('model-select-mobile');
+    if (sel) sel.value = value;
+}
+
+// Sincronizare select mobile → desktop
+function syncDesktopSelect(value) {
+    var sel = document.getElementById('model-select');
+    if (sel) sel.value = value;
+}
+
 function handleSearch(val) {
     searchQuery = val.toLowerCase().trim();
     applyFilters();
@@ -259,35 +265,27 @@ function applyFilters() {
 
 function updateBadges() {
     document.getElementById('badge-all').textContent = allDocs.length;
-
-    // Actualizăm badge-urile dinamice create
     dynamicCats.forEach(function (cat) {
-        var badgeId = 'badge-' + escAttr(cat);
-        var el = document.getElementById(badgeId);
-        if (el) {
-            el.textContent = allDocs.filter(function (d) { return d.categorie === cat; }).length;
-        }
+        var el = document.getElementById('badge-' + escAttr(cat));
+        if (el) el.textContent = allDocs.filter(function (d) { return d.categorie === cat; }).length;
     });
 }
 
 function extractDynamicCategories() {
     var cats = new Set();
-    allDocs.forEach(function (doc) {
-        if (doc.categorie) cats.add(doc.categorie);
-    });
+    allDocs.forEach(function (doc) { if (doc.categorie) cats.add(doc.categorie); });
     dynamicCats = Array.from(cats).sort();
 }
 
 function renderSidebarCategories() {
     var container = document.getElementById('dynamic-categories-container');
     if (!container) return;
-
     var html = '';
-    // Categorii dinamice găsite în documente
     dynamicCats.forEach(function (cat) {
         var cfg = getCatConfig(cat);
         var isActive = (activeCategory === cat) ? 'active' : '';
-        html += '<div class="nav-item ' + isActive + '" data-cat="' + escAttr(cat) + '" onclick="filterCategory(\'' + cat.replace(/'/g, "\\'") + '\', this)">' +
+        var safeOnclick = cat.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        html += '<div class="nav-item ' + isActive + '" data-cat="' + escAttr(cat) + '" onclick="filterCategory(\'' + safeOnclick + '\', this); closeSidebarOnMobile()">' +
             '<span class="nav-icon">' + cfg.icon + '</span> ' + escHtml(cfg.name) +
             '<span class="nav-badge" id="badge-' + escAttr(cat) + '">0</span>' +
             '</div>';
@@ -325,38 +323,95 @@ function renderDocList(docs) {
 }
 
 // ============================================================
+//  GOOGLE DOCS URL HELPERS
+// ============================================================
+
+/**
+ * Extrage ID-ul documentului Google Docs dintr-un URL.
+ * Suportă formate:
+ *  - https://docs.google.com/document/d/{ID}/edit
+ *  - https://docs.google.com/document/d/{ID}/view
+ *  - https://drive.google.com/file/d/{ID}/view
+ */
+function extractGoogleDocId(url) {
+    if (!url) return null;
+    var match = url.match(/\/d\/([a-zA-Z0-9_-]{25,})/);
+    return match ? match[1] : null;
+}
+
+/**
+ * Construiește URL-ul de embed (preview) pentru Google Docs.
+ * Aceasta funcționează chiar și fără autentificare dacă documentul
+ * este setat ca vizibil oricui cu linkul.
+ */
+function buildPreviewUrl(docId) {
+    return 'https://docs.google.com/document/d/' + docId + '/preview';
+}
+
+/**
+ * Construiește URL-ul pentru editare directă în Google Docs.
+ */
+function buildEditUrl(docId) {
+    return 'https://docs.google.com/document/d/' + docId + '/edit';
+}
+
+// ============================================================
 //  DESCHIDE DOCUMENT
 // ============================================================
 function openDoc(docId) {
     var doc = allDocs.find(function (d) { return String(d.id) === String(docId); });
     if (!doc) return;
 
+    // Marchează cardul selectat
     document.querySelectorAll('.doc-card').forEach(function (c) { c.classList.remove('selected'); });
     var card = document.getElementById('card-' + doc.id);
     if (card) card.classList.add('selected');
 
+    // Populează header viewer
     document.getElementById('viewer-title').textContent = doc.titlu;
     document.getElementById('viewer-cat').textContent = doc.categorie;
     document.getElementById('viewer-model').textContent = doc.model || 'General';
     document.getElementById('viewer-date').textContent = doc.dataActualizare ? '📅 ' + doc.dataActualizare : '';
 
+    // Afișează conținut viewer
     document.getElementById('doc-viewer-placeholder').style.display = 'none';
     document.getElementById('doc-viewer-content').classList.add('visible');
-    document.getElementById('doc-body').innerHTML = '<div class="spinner"></div>';
 
-    apiCall({ action: 'doc', token: currentToken, url: doc.linkDoc })
-        .then(function (result) {
-            if (result.error) {
-                document.getElementById('doc-body').innerHTML =
-                    '<div class="empty-state"><div class="empty-icon">⚠️</div><p>' + escHtml(result.error) + '</p></div>';
-                return;
-            }
-            document.getElementById('doc-body').innerHTML = result.html || '<p><em>Document gol.</em></p>';
-        })
-        .catch(function (err) {
-            document.getElementById('doc-body').innerHTML =
-                '<div class="empty-state"><div class="empty-icon">❌</div><p>Eroare: ' + escHtml(err.message) + '</p></div>';
-        });
+    // Configurează iframe + butoane
+    var gDocId = extractGoogleDocId(doc.linkDoc);
+    var iframe = document.getElementById('doc-iframe');
+    var btnOpen = document.getElementById('btn-open-doc');
+    var btnEdit = document.getElementById('btn-edit-doc');
+
+    if (gDocId) {
+        // Embed Google Docs preview
+        iframe.src = buildPreviewUrl(gDocId);
+
+        // Buton deschide (view)
+        btnOpen.href = doc.linkDoc;
+        btnOpen.style.display = 'inline-flex';
+
+        // Buton editare (dacă utilizatorul are acces de editare)
+        btnEdit.href = buildEditUrl(gDocId);
+        btnEdit.style.display = 'inline-flex';
+    } else if (doc.linkDoc) {
+        // Fallback: dacă nu e un doc Google, deschide direct
+        iframe.src = doc.linkDoc;
+        btnOpen.href = doc.linkDoc;
+        btnOpen.style.display = 'inline-flex';
+        btnEdit.style.display = 'none';
+    } else {
+        iframe.src = 'about:blank';
+        btnOpen.style.display = 'none';
+        btnEdit.style.display = 'none';
+    }
+
+    // Pe mobil: afișează overlay viewer
+    if (window.innerWidth <= 768) {
+        var viewer = document.getElementById('doc-viewer');
+        viewer.classList.add('active-mobile');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function clearViewer() {
@@ -364,51 +419,94 @@ function clearViewer() {
     if (sel) sel.classList.remove('selected');
     document.getElementById('doc-viewer-placeholder').style.display = '';
     document.getElementById('doc-viewer-content').classList.remove('visible');
+    var iframe = document.getElementById('doc-iframe');
+    if (iframe) iframe.src = 'about:blank';
+}
+
+function closeMobileViewer() {
+    var viewer = document.getElementById('doc-viewer');
+    viewer.classList.remove('active-mobile');
+    document.body.style.overflow = '';
+    clearViewer();
 }
 
 // ============================================================
 //  MODEL SELECT
 // ============================================================
 function populateModelSelect() {
-    var sel = document.getElementById('model-select');
     var brands = {};
     MODELS.forEach(function (m) {
         var brand = m.split(' ')[0];
         if (!brands[brand]) brands[brand] = [];
         brands[brand].push(m);
     });
-    Object.keys(brands).sort().forEach(function (brand) {
-        var group = document.createElement('optgroup');
-        group.label = brand;
-        brands[brand].forEach(function (model) {
-            var opt = document.createElement('option');
-            opt.value = model; opt.textContent = model;
-            group.appendChild(opt);
+
+    // Populează ambele selecturi (desktop sidebar + mobile header)
+    ['model-select', 'model-select-mobile'].forEach(function (selId) {
+        var sel = document.getElementById(selId);
+        if (!sel) return;
+        // Șterge toate opțiunile în afară de prima
+        while (sel.options.length > 1) sel.remove(1);
+
+        Object.keys(brands).sort().forEach(function (brand) {
+            var group = document.createElement('optgroup');
+            group.label = brand;
+            brands[brand].forEach(function (model) {
+                var opt = document.createElement('option');
+                opt.value = model;
+                opt.textContent = model;
+                group.appendChild(opt);
+            });
+            sel.appendChild(group);
         });
-        sel.appendChild(group);
     });
 }
 
 // ============================================================
-//  API CALL – JSONP (avoid CORS / redirect issues from Apps Script)
+//  SIDEBAR TOGGLE (desktop-safe)
+// ============================================================
+function toggleSidebar() {
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    var isOpen = sidebar.classList.contains('active-mobile-sidebar');
+
+    if (isOpen) {
+        sidebar.classList.remove('active-mobile-sidebar');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    } else {
+        sidebar.classList.add('active-mobile-sidebar');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Închide sidebar-ul automat după selectarea unei categorii (doar pe mobil)
+function closeSidebarOnMobile() {
+    if (window.innerWidth <= 768) {
+        var sidebar = document.getElementById('sidebar');
+        if (sidebar.classList.contains('active-mobile-sidebar')) {
+            toggleSidebar();
+        }
+    }
+}
+
+// ============================================================
+//  API CALL – JSONP
 // ============================================================
 var jsonpCounter = 0;
 
 function apiCall(params) {
     return new Promise(function (resolve, reject) {
-        var callbackName = 'jsonp_callback_' + (++jsonpCounter);
-
-        // Configurare timeout
+        var callbackName = 'jsonp_cb_' + (++jsonpCounter);
         var timeoutId = setTimeout(function () {
             cleanup();
             reject(new Error('API Timeout'));
         }, 15000);
 
-        window[callbackName] = function (data) {
-            cleanup();
-            resolve(data);
-        };
+        window[callbackName] = function (data) { cleanup(); resolve(data); };
 
+        var script = document.createElement('script');
         var cleanup = function () {
             clearTimeout(timeoutId);
             if (script.parentNode) script.parentNode.removeChild(script);
@@ -420,13 +518,8 @@ function apiCall(params) {
             return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
         }).join('&');
 
-        var script = document.createElement('script');
         script.src = API_URL + '?' + qs;
-        script.onerror = function () {
-            cleanup();
-            reject(new Error('Network Error or CORS failure'));
-        };
-
+        script.onerror = function () { cleanup(); reject(new Error('Network Error')); };
         document.body.appendChild(script);
     });
 }
@@ -452,18 +545,4 @@ function escHtml(str) {
 
 function escAttr(str) {
     return String(str).replace(/[^a-zA-Z0-9_-]/g, '_');
-}
-
-function escJson(obj) {
-    return "'" + JSON.stringify(obj).replace(/'/g, "\\'") + "'";
-}
-
-/* ── Meniu Mobile (Hamburger) ── */
-function toggleSidebar() {
-    var sidebar = document.getElementById('sidebar');
-    if (sidebar.classList.contains('active-mobile-sidebar')) {
-        sidebar.classList.remove('active-mobile-sidebar');
-    } else {
-        sidebar.classList.add('active-mobile-sidebar');
-    }
 }
