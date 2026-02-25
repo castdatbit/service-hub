@@ -57,7 +57,8 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (e) { }
     }
     showLoginView();
-    document.getElementById('login-form').addEventListener('submit', handleLogin);
+
+    // Curăță eroarea de la input parolă
     document.getElementById('password').addEventListener('input', function () {
         this.classList.remove('error');
         document.getElementById('login-error').style.display = 'none';
@@ -86,13 +87,11 @@ function showAppView() {
     document.getElementById('mobile-user-avatar').textContent = initial;
     document.getElementById('mobile-user-avatar').title = currentUser.name;
 
-    // Sync btn - admin only
+    // Buton sincronizare – vizibil pentru toți utilizatorii
     var syncBtn = document.getElementById('sync-btn');
     var syncBtnMobile = document.getElementById('sync-btn-mobile');
-    if (currentUser.role && currentUser.role.toLowerCase().includes('tehnician')) {
-        if (syncBtn) syncBtn.style.display = 'inline-flex';
-        if (syncBtnMobile) syncBtnMobile.style.display = 'inline-flex';
-    }
+    if (syncBtn) syncBtn.style.display = 'inline-flex';
+    if (syncBtnMobile) syncBtnMobile.style.display = 'inline-flex';
 
     populateModelSelect();
     loadDocuments();
