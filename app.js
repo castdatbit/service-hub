@@ -32,9 +32,18 @@ var CAT_ICONS = {
 };
 
 function getCatConfig(catName) {
-    if (CAT_ICONS[catName]) return CAT_ICONS[catName];
+    if (CAT_ICONS[catName]) return Object.assign({}, CAT_ICONS[catName], { name: catName });
+
+    // Verificăm dacă numele categoriei (folderului) începe cu un emoticon (emoji)
+    try {
+        var match = catName.match(/^([\uD800-\uDBFF][\uDC00-\uDFFF]|\p{Emoji_Presentation}|\p{Emoji}\uFE0F)\s*(.*)$/u);
+        if (match) {
+            return { icon: match[1], cls: 'cat-proceduri', name: match[2].trim() || catName };
+        }
+    } catch (e) { }
+
     // Config default pentru categorii noi găsite în foldere
-    return { icon: '📁', cls: 'cat-proceduri' };
+    return { icon: '📁', cls: 'cat-proceduri', name: catName };
 }
 
 // ============================================================
@@ -83,7 +92,7 @@ function showAppView() {
 
     var syncBtn = document.getElementById('sync-btn');
     if (syncBtn) {
-        syncBtn.style.display = (currentUser.role === 'admin') ? 'inline-block' : 'none';
+        syncBtn.style.display = 'inline-block';
     }
 
     populateModelSelect();
@@ -163,7 +172,7 @@ function handleLogout() {
 //  SYNC FOLDER
 // ============================================================
 function handleSync() {
-    if (currentUser.role !== 'admin') return;
+    if (!currentUser.role) return;
     showSpinner(true);
     showToast('Începem sincronizarea cu Drive...', '');
 
@@ -279,7 +288,7 @@ function renderSidebarCategories() {
         var cfg = getCatConfig(cat);
         var isActive = (activeCategory === cat) ? 'active' : '';
         html += '<div class="nav-item ' + isActive + '" data-cat="' + escAttr(cat) + '" onclick="filterCategory(\'' + escJson(cat).slice(1, -1) + '\', this)">' +
-            '<span class="nav-icon">' + cfg.icon + '</span> ' + escHtml(cat) +
+            '<span class="nav-icon">' + cfg.icon + '</span> ' + escHtml(cfg.name) +
             '<span class="nav-badge" id="badge-' + escAttr(cat) + '">0</span>' +
             '</div>';
     });
@@ -300,7 +309,7 @@ function renderDocList(docs) {
         var tags = doc.tags
             ? doc.tags.split(',').map(function (t) { return '<span class="tag">#' + t.trim() + '</span>'; }).join('')
             : '';
-        return '<div class="doc-card" id="card-' + escAttr(doc.id) + '" onclick="openDoc(' + escJson(doc) + ')">' +
+        return '<div class="doc-card" id="card-' + escAttr(doc.id) + '" onclick="openDoc(\'' + escAttr(doc.id) + '\')">' +
             '<div class="doc-card-header">' +
             '<div class="doc-cat-icon ' + cfg.cls + '">' + cfg.icon + '</div>' +
             '<div>' +
@@ -318,7 +327,10 @@ function renderDocList(docs) {
 // ============================================================
 //  DESCHIDE DOCUMENT
 // ============================================================
-function openDoc(doc) {
+function openDoc(docId) {
+    var doc = allDocs.find(function (d) { return String(d.id) === String(docId); });
+    if (!doc) return;
+
     document.querySelectorAll('.doc-card').forEach(function (c) { c.classList.remove('selected'); });
     var card = document.getElementById('card-' + doc.id);
     if (card) card.classList.add('selected');
