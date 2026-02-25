@@ -54,12 +54,25 @@
     <div id="app-view" class="view">
         <div id="app-shell">
 
+            <!-- ── MOBILE HEADER (Visible only on < 768px) ── -->
+            <div id="mobile-header">
+                <button id="hamburger-btn" onclick="toggleSidebar()">
+                    <span class="hamburger-icon">☰</span>
+                </button>
+                <div class="mobile-logo">
+                    <span class="logo-icon">🖨️</span> Service Hub
+                </div>
+            </div>
+
             <!-- ── SIDEBAR ── -->
             <aside id="sidebar">
                 <div id="sidebar-logo">
                     <div class="logo-icon">🖨️</div>
-                    <h1>Service Hub</h1>
-                    <span>Case de Marcat</span>
+                    <div class="logo-text-wrapper">
+                        <h1>Service Hub</h1>
+                        <span>Case de Marcat</span>
+                    </div>
+                    <button id="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
                 </div>
 
                 <div class="sidebar-section">
