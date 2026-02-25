@@ -1429,3 +1429,149 @@ body {
     font-size: 20px;
   }
 }
+
+/* ─────────────────────────────────────────────
+   LOGIN – orbe decorative animate
+───────────────────────────────────────────── */
+.login-bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(40px);
+  animation: orbFloat 8s ease-in-out infinite alternate;
+}
+
+.login-bg-orb-1 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(79, 142, 247, 0.18) 0%, transparent 70%);
+  top: -150px;
+  right: -100px;
+}
+
+.login-bg-orb-2 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.14) 0%, transparent 70%);
+  bottom: -80px;
+  left: -80px;
+  animation-delay: -4s;
+}
+
+@keyframes orbFloat {
+  from {
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    transform: translateY(20px) scale(1.06);
+  }
+}
+
+/* Tagline - ascuns pe desktop */
+.login-tagline {
+  display: none;
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* ─────────────────────────────────────────────
+   LOGIN MOBIL – redesign (≤ 768px)
+───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  #login-view {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 10vh;
+    min-height: 100dvh;
+  }
+
+  .login-bg-orb-1 {
+    width: 280px;
+    height: 280px;
+    top: -60px;
+    right: -60px;
+    filter: blur(50px);
+  }
+
+  .login-bg-orb-2 {
+    width: 240px;
+    height: 240px;
+    bottom: 60px;
+    left: -60px;
+    filter: blur(50px);
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 28px 28px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    padding: 32px 24px 48px;
+    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+    background: rgba(26, 29, 39, 0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Drag handle bar */
+  .login-card::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 24px;
+  }
+
+  .login-logo {
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .login-logo-icon {
+    width: 58px;
+    height: 58px;
+    font-size: 30px;
+    box-shadow: 0 10px 30px rgba(79, 142, 247, 0.35);
+  }
+
+  .login-logo-text h2 {
+    font-size: 20px;
+  }
+
+  .login-logo-text p {
+    font-size: 13px;
+  }
+
+  .login-title {
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .login-subtitle {
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .login-btn {
+    font-size: 16px;
+    padding: 14px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(79, 142, 247, 0.35);
+  }
+
+  .login-tagline {
+    display: block;
+  }
+}
