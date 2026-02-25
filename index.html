@@ -18,6 +18,10 @@
      VIEW: LOGIN
 ═══════════════════════════════════════ -->
     <div id="login-view" class="view active">
+        <!-- Decorație fundal -->
+        <div class="login-bg-orb login-bg-orb-1"></div>
+        <div class="login-bg-orb login-bg-orb-2"></div>
+
         <div class="login-card">
             <div class="login-logo">
                 <div class="login-logo-icon">🖨️</div>
@@ -30,7 +34,8 @@
             <h1 class="login-title">Bun venit! 👋</h1>
             <p class="login-subtitle">Autentifică-te pentru a accesa procedurile și șabloanele.</p>
 
-            <form id="login-form">
+            <!-- onsubmit inline previne redirectul la ? pe GitHub Pages -->
+            <form id="login-form" onsubmit="handleLogin(event); return false;" autocomplete="on">
                 <div class="form-group">
                     <label class="form-label" for="username">NUME TEHNICIAN</label>
                     <input class="form-input" type="text" id="username" placeholder="ex: Ion Popescu"
@@ -45,6 +50,9 @@
                 <div class="login-error" id="login-error"></div>
             </form>
         </div>
+
+        <!-- Tagline afișat sub card pe mobil -->
+        <p class="login-tagline">Cunoaștere • Proceduri • Eficiență</p>
     </div>
 
     <!-- ═══════════════════════════════════════
@@ -79,7 +87,7 @@
                         <span class="mh-select-icon">🖨️</span>
                         <select id="model-select-mobile"
                             onchange="filterModel(this.value); syncDesktopSelect(this.value)">
-                            <option value="">Toate modelele</option>
+                            <option value="">CM</option>
                         </select>
                     </div>
                 </div>
