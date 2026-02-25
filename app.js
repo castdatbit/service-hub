@@ -74,6 +74,11 @@ function showAppView() {
     document.getElementById('user-role-display').textContent = currentUser.role;
     document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
 
+    var syncBtn = document.getElementById('sync-btn');
+    if (syncBtn) {
+        syncBtn.style.display = (currentUser.role === 'admin') ? 'inline-block' : 'none';
+    }
+
     populateModelSelect();
     loadDocuments();
 }
@@ -145,6 +150,30 @@ function handleLogout() {
     document.getElementById('login-btn').textContent = 'Autentificare';
     document.getElementById('login-btn').disabled = false;
     showLoginView();
+}
+
+// ============================================================
+//  SYNC FOLDER
+// ============================================================
+function handleSync() {
+    if (currentUser.role !== 'admin') return;
+    showSpinner(true);
+    showToast('Începem sincronizarea cu Drive...', '');
+
+    apiCall({ action: 'sync', token: currentToken })
+        .then(function (result) {
+            if (result.error) {
+                showSpinner(false);
+                showToast(result.error, 'error');
+                return;
+            }
+            showToast(result.msg, 'success');
+            loadDocuments();
+        })
+        .catch(function (err) {
+            showSpinner(false);
+            showToast('Eroare conexiune sincronizare', 'error');
+        });
 }
 
 // ============================================================
