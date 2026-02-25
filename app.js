@@ -287,7 +287,7 @@ function renderSidebarCategories() {
     dynamicCats.forEach(function (cat) {
         var cfg = getCatConfig(cat);
         var isActive = (activeCategory === cat) ? 'active' : '';
-        html += '<div class="nav-item ' + isActive + '" data-cat="' + escAttr(cat) + '" onclick="filterCategory(\'' + escJson(cat).slice(1, -1) + '\', this)">' +
+        html += '<div class="nav-item ' + isActive + '" data-cat="' + escAttr(cat) + '" onclick="filterCategory(\'' + cat.replace(/'/g, "\\'") + '\', this)">' +
             '<span class="nav-icon">' + cfg.icon + '</span> ' + escHtml(cfg.name) +
             '<span class="nav-badge" id="badge-' + escAttr(cat) + '">0</span>' +
             '</div>';
