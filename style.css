@@ -851,7 +851,8 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.doc-card.active {
+.doc-card.active,
+.doc-card.selected {
   background: var(--accent-glow);
   border-color: rgba(79, 142, 247, 0.4);
   box-shadow: 0 4px 16px rgba(79, 142, 247, 0.2);
@@ -925,7 +926,8 @@ body {
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  gap: 12px;
+  gap: 20px;
+  padding: 40px 20px;
 }
 
 .placeholder-icon {
@@ -935,6 +937,7 @@ body {
 
 #doc-viewer-placeholder p {
   font-size: 14px;
+  line-height: 1.6;
 }
 
 #doc-viewer-content {
@@ -944,7 +947,8 @@ body {
   overflow: hidden;
 }
 
-#doc-viewer-content.active {
+#doc-viewer-content.active,
+#doc-viewer-content.visible {
   display: flex;
 }
 
@@ -1256,6 +1260,30 @@ body {
     padding: 10px 12px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Carduri documente mai mari și mai ușor de citit pe mobil */
+  .doc-card {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .doc-title {
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .doc-icon {
+    font-size: 18px;
+  }
+
+  .doc-meta-inline {
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .meta-badge {
+    padding: 4px 10px;
   }
 
   /* ── DOC VIEWER – Overlay full-screen pe mobil ── */
