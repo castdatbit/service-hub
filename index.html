@@ -85,16 +85,20 @@
 
                 <div id="sidebar-footer">
                     <div id="user-card">
-                        <div class="user-avatar" id="user-avatar">?</div>
-                        <div class="user-info">
-                            <div class="user-name" id="user-name-display">—</div>
-                            <div class="user-role" id="user-role-display">tehnician</div>
+                        <div class="user-block-left">
+                            <div class="user-avatar" id="user-avatar">?</div>
+                            <div class="user-info">
+                                <div class="user-name" id="user-name-display">—</div>
+                                <div class="user-role" id="user-role-display">tehnician</div>
+                            </div>
                         </div>
-                        <button id="sync-btn" title="Sincronizare cu Google Drive" onclick="handleSync()"
-                            style="display: none; padding: 6px; border-radius: 6px; font-size: 16px; background: none; border: none; cursor: pointer; color: var(--text-dim); transition: var(--transition);">🔄</button>
-                        <button id="logout-btn" title="Deconectare" onclick="handleLogout()"
-                            style="padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); cursor: pointer; color: var(--danger); transition: var(--transition); display: flex; align-items: center; gap: 4px;">Ieșire
-                            🚪</button>
+                        <div class="user-actions">
+                            <button id="sync-btn" title="Sincronizare cu Google Drive" onclick="handleSync()"
+                                style="display: none; padding: 6px; border-radius: 6px; font-size: 16px; background: none; border: none; cursor: pointer; color: var(--text-dim); transition: var(--transition);">🔄</button>
+                            <button id="logout-btn" title="Deconectare" onclick="handleLogout()"
+                                style="padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); cursor: pointer; color: var(--danger); transition: var(--transition); display: flex; align-items: center; gap: 4px;">Ieșire
+                                🚪</button>
+                        </div>
                     </div>
                 </div>
             </aside>
