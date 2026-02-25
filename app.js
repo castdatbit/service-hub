@@ -89,7 +89,7 @@ function showAppView() {
     // Sync btn - admin only
     var syncBtn = document.getElementById('sync-btn');
     var syncBtnMobile = document.getElementById('sync-btn-mobile');
-    if (currentUser.role && currentUser.role.toLowerCase().includes('Tehnician')) {
+    if (currentUser.role && currentUser.role.toLowerCase().includes('tehnician')) {
         if (syncBtn) syncBtn.style.display = 'inline-flex';
         if (syncBtnMobile) syncBtnMobile.style.display = 'inline-flex';
     }
@@ -327,32 +327,47 @@ function renderDocList(docs) {
 // ============================================================
 
 /**
- * Extrage ID-ul documentului Google Docs dintr-un URL.
+ * Extrage ID-ul documentului Google dintr-un URL.
  * Suportă formate:
  *  - https://docs.google.com/document/d/{ID}/edit
  *  - https://docs.google.com/document/d/{ID}/view
  *  - https://drive.google.com/file/d/{ID}/view
+ *  - https://drive.google.com/open?id={ID}
+ *  - https://drive.google.com/uc?id={ID}
  */
 function extractGoogleDocId(url) {
     if (!url) return null;
-    var match = url.match(/\/d\/([a-zA-Z0-9_-]{25,})/);
-    return match ? match[1] : null;
+    // Format /d/{ID}/
+    var m1 = url.match(/\/d\/([a-zA-Z0-9_-]{20,})/);
+    if (m1) return m1[1];
+    // Format ?id={ID} sau &id={ID}
+    var m2 = url.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+    if (m2) return m2[1];
+    return null;
 }
 
 /**
- * Construiește URL-ul de embed (preview) pentru Google Docs.
- * Aceasta funcționează chiar și fără autentificare dacă documentul
- * este setat ca vizibil oricui cu linkul.
+ * Construiește URL-ul de embed (preview) pentru orice fișier Google Drive.
+ * Funcționează și pentru Google Docs și pentru alte tipuri de fișiere.
  */
-function buildPreviewUrl(docId) {
-    return 'https://docs.google.com/document/d/' + docId + '/preview';
+function buildPreviewUrl(docId, url) {
+    // Dacă e Google Docs, folosim preview-ul nativ
+    if (url && url.includes('docs.google.com/document')) {
+        return 'https://docs.google.com/document/d/' + docId + '/preview';
+    }
+    // Fallback general Drive: Google Docs Viewer embed
+    return 'https://drive.google.com/file/d/' + docId + '/preview';
 }
 
 /**
  * Construiește URL-ul pentru editare directă în Google Docs.
  */
-function buildEditUrl(docId) {
-    return 'https://docs.google.com/document/d/' + docId + '/edit';
+function buildEditUrl(docId, url) {
+    if (url && url.includes('docs.google.com/document')) {
+        return 'https://docs.google.com/document/d/' + docId + '/edit';
+    }
+    // Pentru fișiere Drive generice, deschide în Drive viewer
+    return 'https://drive.google.com/file/d/' + docId + '/view';
 }
 
 // ============================================================
@@ -384,19 +399,19 @@ function openDoc(docId) {
     var btnEdit = document.getElementById('btn-edit-doc');
 
     if (gDocId) {
-        // Embed Google Docs preview
-        iframe.src = buildPreviewUrl(gDocId);
+        // Embed Google Drive/Docs preview
+        iframe.src = buildPreviewUrl(gDocId, doc.linkDoc);
 
-        // Buton deschide (view)
-        btnOpen.href = doc.linkDoc;
+        // Buton deschide – folosim URL-ul original (mai friendly)
+        btnOpen.href = doc.linkDoc || buildPreviewUrl(gDocId, doc.linkDoc);
         btnOpen.style.display = 'inline-flex';
 
-        // Buton editare (dacă utilizatorul are acces de editare)
-        btnEdit.href = buildEditUrl(gDocId);
+        // Buton editare – mereu vizibil când avem ID
+        btnEdit.href = buildEditUrl(gDocId, doc.linkDoc);
         btnEdit.style.display = 'inline-flex';
     } else if (doc.linkDoc) {
-        // Fallback: dacă nu e un doc Google, deschide direct
-        iframe.src = doc.linkDoc;
+        // Fallback: URL necunoscut – încearcă Google Docs Viewer
+        iframe.src = 'https://docs.google.com/viewer?url=' + encodeURIComponent(doc.linkDoc) + '&embedded=true';
         btnOpen.href = doc.linkDoc;
         btnOpen.style.display = 'inline-flex';
         btnEdit.style.display = 'none';
