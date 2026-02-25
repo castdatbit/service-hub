@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Hub – Case de Marcat</title>
+    <meta name="description"
+        content="Portal de cunoaștere pentru tehnicieni service case de marcat. Proceduri, șabloane, moduri de utilizare.">
+    <link rel="stylesheet" href="style.css">
+    <!-- Favicon emoji -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖨️</text></svg>">
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════════
+     VIEW: LOGIN
+═══════════════════════════════════════ -->
+    <div id="login-view" class="view active">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="login-logo-icon">🖨️</div>
+                <div class="login-logo-text">
+                    <h2>Service Hub</h2>
+                    <p>Case de Marcat</p>
+                </div>
+            </div>
+
+            <h1 class="login-title">Bun venit! 👋</h1>
+            <p class="login-subtitle">Autentifică-te pentru a accesa procedurile și șabloanele.</p>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="username">NUME TEHNICIAN</label>
+                    <input class="form-input" type="text" id="username" placeholder="ex: Ion Popescu"
+                        autocomplete="username" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">PAROLĂ</label>
+                    <input class="form-input" type="password" id="password" placeholder="Parola ta"
+                        autocomplete="current-password" required />
+                </div>
+                <button class="login-btn" type="submit" id="login-btn">Autentificare</button>
+                <div class="login-error" id="login-error"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+     VIEW: APP
+═══════════════════════════════════════ -->
+    <div id="app-view" class="view">
+        <div id="app-shell">
+
+            <!-- ── SIDEBAR ── -->
+            <aside id="sidebar">
+                <div id="sidebar-logo">
+                    <div class="logo-icon">🖨️</div>
+                    <h1>Service Hub</h1>
+                    <span>Case de Marcat</span>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-label">Categorii</div>
+                    <div class="nav-item active" data-cat="" onclick="filterCategory('', this)">
+                        <span class="nav-icon">📚</span> Toate
+                        <span class="nav-badge" id="badge-all">0</span>
+                    </div>
+                    <div class="nav-item" data-cat="Proceduri" onclick="filterCategory('Proceduri', this)">
+                        <span class="nav-icon">📋</span> Proceduri
+                        <span class="nav-badge" id="badge-proceduri">0</span>
+                    </div>
+                    <div class="nav-item" data-cat="Șabloane" onclick="filterCategory('Șabloane', this)">
+                        <span class="nav-icon">📄</span> Șabloane
+                        <span class="nav-badge" id="badge-sabloane">0</span>
+                    </div>
+                    <div class="nav-item" data-cat="Moduri utilizare"
+                        onclick="filterCategory('Moduri utilizare', this)">
+                        <span class="nav-icon">💡</span> Moduri utilizare
+                        <span class="nav-badge" id="badge-moduri">0</span>
+                    </div>
+                    <div class="nav-item" data-cat="Erori frecvente" onclick="filterCategory('Erori frecvente', this)">
+                        <span class="nav-icon">⚠️</span> Erori frecvente
+                        <span class="nav-badge" id="badge-erori">0</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-label">Model casă de marcat</div>
+                    <div class="model-filter-wrapper">
+                        <select id="model-select" onchange="filterModel(this.value)">
+                            <option value="">— Toate modelele —</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="sidebar-footer">
+                    <div id="user-card">
+                        <div class="user-avatar" id="user-avatar">?</div>
+                        <div class="user-info">
+                            <div class="user-name" id="user-name-display">—</div>
+                            <div class="user-role" id="user-role-display">tehnician</div>
+                        </div>
+                        <button id="logout-btn" title="Deconectare" onclick="handleLogout()">⏻</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ── MAIN ── -->
+            <main id="main">
+                <div id="header">
+                    <div id="search-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="search-input" placeholder="Caută proceduri, șabloane, modele..."
+                            oninput="handleSearch(this.value)" />
+                    </div>
+                    <span id="results-count">0 documente</span>
+                </div>
+
+                <div id="content-area">
+                    <div id="doc-list-panel">
+                        <div class="spinner" id="loading-spinner"></div>
+                        <div id="doc-list"></div>
+                    </div>
+
+                    <div id="doc-viewer">
+                        <div id="doc-viewer-placeholder">
+                            <div class="placeholder-icon">📖</div>
+                            <p>Selectează un document pentru a-l vizualiza</p>
+                        </div>
+                        <div id="doc-viewer-content">
+                            <div class="doc-viewer-header">
+                                <div class="doc-viewer-title-area">
+                                    <h2 id="viewer-title">—</h2>
+                                    <div class="doc-meta">
+                                        <span class="meta-badge meta-cat" id="viewer-cat">—</span>
+                                        <span class="meta-badge meta-model" id="viewer-model">—</span>
+                                        <span class="meta-badge meta-date" id="viewer-date">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="doc-body"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Toast global -->
+    <div id="toast"></div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
