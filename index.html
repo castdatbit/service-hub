@@ -8,7 +8,6 @@
     <meta name="description"
         content="Portal de cunoaștere pentru tehnicieni service case de marcat. Proceduri, șabloane, moduri de utilizare.">
     <link rel="stylesheet" href="style.css">
-    <!-- Favicon emoji -->
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖨️</text></svg>">
 </head>
@@ -54,14 +53,45 @@
     <div id="app-view" class="view">
         <div id="app-shell">
 
-            <!-- ── MOBILE HEADER (Visible only on < 768px) ── -->
+            <!-- ── OVERLAY (click în afara sidebar-ului îl închide) ── -->
+            <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+            <!-- ══════════════════════════════════════════
+                 MOBILE HEADER (vizibil < 768px)
+                 3 zone: [☰ Logo] | [Select Model] | [Avatar+Butoane]
+            ══════════════════════════════════════════ -->
             <div id="mobile-header">
-                <button id="hamburger-btn" onclick="toggleSidebar()">
-                    <span class="hamburger-icon">☰</span>
-                </button>
-                <div class="mobile-logo">
-                    <span class="logo-icon">🖨️</span> Service Hub
+
+                <!-- Stânga: Hamburger + Logo -->
+                <div class="mh-left">
+                    <button class="mh-hamburger" id="hamburger-btn" onclick="toggleSidebar()" title="Meniu categorii">
+                        <span class="hamburger-icon">☰</span>
+                    </button>
+                    <div class="mobile-logo">
+                        <span class="logo-icon-small">🖨️</span>
+                        <span class="mobile-logo-text">Service Hub</span>
+                    </div>
                 </div>
+
+                <!-- Centru: Selector model casă de marcat -->
+                <div class="mh-center">
+                    <div class="mh-model-select-wrap">
+                        <span class="mh-select-icon">🖨️</span>
+                        <select id="model-select-mobile"
+                            onchange="filterModel(this.value); syncDesktopSelect(this.value)">
+                            <option value="">Toate modelele</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dreapta: Avatar + Sincronizare + Deconectare -->
+                <div class="mh-right">
+                    <button id="sync-btn-mobile" class="mh-icon-btn mh-sync-btn" title="Sincronizare Drive"
+                        onclick="handleSync()" style="display:none;">🔄</button>
+                    <div class="mh-user-avatar" id="mobile-user-avatar" title="">?</div>
+                    <button class="mh-icon-btn mh-logout-btn" title="Deconectare" onclick="handleLogout()">🚪</button>
+                </div>
+
             </div>
 
             <!-- ── SIDEBAR ── -->
@@ -72,13 +102,14 @@
                         <h1>Service Hub</h1>
                         <span>Case de Marcat</span>
                     </div>
-                    <button id="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
+                    <button id="close-sidebar-btn" onclick="toggleSidebar()" title="Închide meniu">✕</button>
                 </div>
 
                 <div class="sidebar-section">
                     <div class="sidebar-label">Categorii</div>
                     <div id="categories-wrapper">
-                        <div class="nav-item active" data-cat="" onclick="filterCategory('', this)">
+                        <div class="nav-item active" data-cat=""
+                            onclick="filterCategory('', this); closeSidebarOnMobile()">
                             <span class="nav-icon">📚</span> Toate
                             <span class="nav-badge" id="badge-all">0</span>
                         </div>
@@ -87,10 +118,11 @@
                     </div>
                 </div>
 
-                <div class="sidebar-section">
+                <!-- Model select vizibil DOAR pe desktop în sidebar -->
+                <div class="sidebar-section sidebar-model-section">
                     <div class="sidebar-label">Model casă de marcat</div>
                     <div class="model-filter-wrapper">
-                        <select id="model-select" onchange="filterModel(this.value)">
+                        <select id="model-select" onchange="filterModel(this.value); syncMobileSelect(this.value)">
                             <option value="">— Toate modelele —</option>
                         </select>
                     </div>
@@ -107,10 +139,8 @@
                         </div>
                         <div class="user-actions">
                             <button id="sync-btn" title="Sincronizare cu Google Drive" onclick="handleSync()"
-                                style="display: none; padding: 6px; border-radius: 6px; font-size: 16px; background: none; border: none; cursor: pointer; color: var(--text-dim); transition: var(--transition);">🔄</button>
-                            <button id="logout-btn" title="Deconectare" onclick="handleLogout()"
-                                style="padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); cursor: pointer; color: var(--danger); transition: var(--transition); display: flex; align-items: center; gap: 4px;">Ieșire
-                                🚪</button>
+                                style="display: none;">🔄 Sincronizare</button>
+                            <button id="logout-btn" title="Deconectare" onclick="handleLogout()">🚪 Ieșire</button>
                         </div>
                     </div>
                 </div>
@@ -150,8 +180,22 @@
                                         <span class="meta-badge meta-date" id="viewer-date">—</span>
                                     </div>
                                 </div>
+                                <!-- Butoane acțiuni document -->
+                                <div class="doc-actions">
+                                    <a id="btn-edit-doc" class="doc-action-btn doc-action-edit" href="#" target="_blank"
+                                        title="Editează în Google Docs" style="display:none;">
+                                        ✏️ Editează
+                                    </a>
+                                    <a id="btn-open-doc" class="doc-action-btn doc-action-open" href="#" target="_blank"
+                                        title="Deschide în Google Docs">
+                                        📄 Deschide
+                                    </a>
+                                </div>
                             </div>
-                            <div id="doc-body"></div>
+                            <!-- IFRAME Google Docs viewer -->
+                            <div id="doc-iframe-wrapper">
+                                <iframe id="doc-iframe" src="" frameborder="0" allowfullscreen></iframe>
+                            </div>
                         </div>
                     </div>
                 </div>
