@@ -457,3 +457,13 @@ function escAttr(str) {
 function escJson(obj) {
     return "'" + JSON.stringify(obj).replace(/'/g, "\\'") + "'";
 }
+
+/* ── Meniu Mobile (Hamburger) ── */
+function toggleSidebar() {
+    var sidebar = document.getElementById('sidebar');
+    if (sidebar.classList.contains('active-mobile-sidebar')) {
+        sidebar.classList.remove('active-mobile-sidebar');
+    } else {
+        sidebar.classList.add('active-mobile-sidebar');
+    }
+}
