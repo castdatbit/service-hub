@@ -68,23 +68,8 @@
                         <span class="nav-icon">📚</span> Toate
                         <span class="nav-badge" id="badge-all">0</span>
                     </div>
-                    <div class="nav-item" data-cat="Proceduri" onclick="filterCategory('Proceduri', this)">
-                        <span class="nav-icon">📋</span> Proceduri
-                        <span class="nav-badge" id="badge-proceduri">0</span>
-                    </div>
-                    <div class="nav-item" data-cat="Șabloane" onclick="filterCategory('Șabloane', this)">
-                        <span class="nav-icon">📄</span> Șabloane
-                        <span class="nav-badge" id="badge-sabloane">0</span>
-                    </div>
-                    <div class="nav-item" data-cat="Moduri utilizare"
-                        onclick="filterCategory('Moduri utilizare', this)">
-                        <span class="nav-icon">💡</span> Moduri utilizare
-                        <span class="nav-badge" id="badge-moduri">0</span>
-                    </div>
-                    <div class="nav-item" data-cat="Erori frecvente" onclick="filterCategory('Erori frecvente', this)">
-                        <span class="nav-icon">⚠️</span> Erori frecvente
-                        <span class="nav-badge" id="badge-erori">0</span>
-                    </div>
+                    <!-- Categoriile dinamice vor fi randate aici -->
+                    <div id="dynamic-categories-container"></div>
                 </div>
 
                 <div class="sidebar-section">
@@ -104,8 +89,10 @@
                             <div class="user-role" id="user-role-display">tehnician</div>
                         </div>
                         <button id="sync-btn" title="Sincronizare cu Google Drive" onclick="handleSync()"
-                            style="display: none; padding: 4px; border-radius: 6px; font-size: 16px; background: none; border: none; cursor: pointer; color: var(--text-dim); transition: var(--transition);">🔄</button>
-                        <button id="logout-btn" title="Deconectare" onclick="handleLogout()">⏻</button>
+                            style="display: none; padding: 6px; border-radius: 6px; font-size: 16px; background: none; border: none; cursor: pointer; color: var(--text-dim); transition: var(--transition);">🔄</button>
+                        <button id="logout-btn" title="Deconectare" onclick="handleLogout()"
+                            style="padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); cursor: pointer; color: var(--danger); transition: var(--transition); display: flex; align-items: center; gap: 4px;">Ieșire
+                            🚪</button>
                     </div>
                 </div>
             </aside>
