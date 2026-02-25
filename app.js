@@ -8,6 +8,7 @@ var activeModel = '';
 var searchQuery = '';
 var currentToken = '';
 var currentUser = { name: '', role: '' };
+var dynamicCats = []; // Stochează categoriile găsite dinamic
 
 var MODELS = [
     'DATECS DP-25 MX', 'DATECS DP-150 MX', 'DATECS WP-50 MX', 'DATECS DP-05 MX',
@@ -23,12 +24,18 @@ var MODELS = [
     'ORGTECH TEO'
 ];
 
-var CAT_CONFIG = {
+var CAT_ICONS = {
     'Proceduri': { icon: '📋', cls: 'cat-proceduri' },
     'Șabloane': { icon: '📄', cls: 'cat-sabloane' },
     'Moduri utilizare': { icon: '💡', cls: 'cat-moduri' },
     'Erori frecvente': { icon: '⚠️', cls: 'cat-erori' }
 };
+
+function getCatConfig(catName) {
+    if (CAT_ICONS[catName]) return CAT_ICONS[catName];
+    // Config default pentru categorii noi găsite în foldere
+    return { icon: '📁', cls: 'cat-proceduri' };
+}
 
 // ============================================================
 //  INIT
@@ -190,6 +197,8 @@ function loadDocuments() {
                 return;
             }
             allDocs = result.docs || [];
+            extractDynamicCategories();
+            renderSidebarCategories();
             updateBadges();
             applyFilters();
         })
@@ -241,12 +250,40 @@ function applyFilters() {
 
 function updateBadges() {
     document.getElementById('badge-all').textContent = allDocs.length;
-    [['Proceduri', 'badge-proceduri'], ['Șabloane', 'badge-sabloane'],
-    ['Moduri utilizare', 'badge-moduri'], ['Erori frecvente', 'badge-erori']
-    ].forEach(function (p) {
-        document.getElementById(p[1]).textContent =
-            allDocs.filter(function (d) { return d.categorie === p[0]; }).length;
+
+    // Actualizăm badge-urile dinamice create
+    dynamicCats.forEach(function (cat) {
+        var badgeId = 'badge-' + escAttr(cat);
+        var el = document.getElementById(badgeId);
+        if (el) {
+            el.textContent = allDocs.filter(function (d) { return d.categorie === cat; }).length;
+        }
     });
+}
+
+function extractDynamicCategories() {
+    var cats = new Set();
+    allDocs.forEach(function (doc) {
+        if (doc.categorie) cats.add(doc.categorie);
+    });
+    dynamicCats = Array.from(cats).sort();
+}
+
+function renderSidebarCategories() {
+    var container = document.getElementById('dynamic-categories-container');
+    if (!container) return;
+
+    var html = '';
+    // Categorii dinamice găsite în documente
+    dynamicCats.forEach(function (cat) {
+        var cfg = getCatConfig(cat);
+        var isActive = (activeCategory === cat) ? 'active' : '';
+        html += '<div class="nav-item ' + isActive + '" data-cat="' + escAttr(cat) + '" onclick="filterCategory(\'' + escJson(cat).slice(1, -1) + '\', this)">' +
+            '<span class="nav-icon">' + cfg.icon + '</span> ' + escHtml(cat) +
+            '<span class="nav-badge" id="badge-' + escAttr(cat) + '">0</span>' +
+            '</div>';
+    });
+    container.innerHTML = html;
 }
 
 // ============================================================
@@ -259,7 +296,7 @@ function renderDocList(docs) {
         return;
     }
     list.innerHTML = docs.map(function (doc) {
-        var cfg = CAT_CONFIG[doc.categorie] || { icon: '📎', cls: 'cat-proceduri' };
+        var cfg = getCatConfig(doc.categorie);
         var tags = doc.tags
             ? doc.tags.split(',').map(function (t) { return '<span class="tag">#' + t.trim() + '</span>'; }).join('')
             : '';
@@ -341,18 +378,44 @@ function populateModelSelect() {
 }
 
 // ============================================================
-//  API CALL – fetch cu redirect follow (Apps Script redirect)
+//  API CALL – JSONP (avoid CORS / redirect issues from Apps Script)
 // ============================================================
+var jsonpCounter = 0;
+
 function apiCall(params) {
-    var qs = Object.keys(params).map(function (k) {
-        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-    }).join('&');
-    return fetch(API_URL + '?' + qs, {
-        method: 'GET',
-        redirect: 'follow'
-    }).then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
+    return new Promise(function (resolve, reject) {
+        var callbackName = 'jsonp_callback_' + (++jsonpCounter);
+
+        // Configurare timeout
+        var timeoutId = setTimeout(function () {
+            cleanup();
+            reject(new Error('API Timeout'));
+        }, 15000);
+
+        window[callbackName] = function (data) {
+            cleanup();
+            resolve(data);
+        };
+
+        var cleanup = function () {
+            clearTimeout(timeoutId);
+            if (script.parentNode) script.parentNode.removeChild(script);
+            delete window[callbackName];
+        };
+
+        params.callback = callbackName;
+        var qs = Object.keys(params).map(function (k) {
+            return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+        }).join('&');
+
+        var script = document.createElement('script');
+        script.src = API_URL + '?' + qs;
+        script.onerror = function () {
+            cleanup();
+            reject(new Error('Network Error or CORS failure'));
+        };
+
+        document.body.appendChild(script);
     });
 }
 
