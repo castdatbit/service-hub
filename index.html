@@ -64,12 +64,14 @@
 
                 <div class="sidebar-section">
                     <div class="sidebar-label">Categorii</div>
-                    <div class="nav-item active" data-cat="" onclick="filterCategory('', this)">
-                        <span class="nav-icon">📚</span> Toate
-                        <span class="nav-badge" id="badge-all">0</span>
+                    <div id="categories-wrapper">
+                        <div class="nav-item active" data-cat="" onclick="filterCategory('', this)">
+                            <span class="nav-icon">📚</span> Toate
+                            <span class="nav-badge" id="badge-all">0</span>
+                        </div>
+                        <!-- Categoriile dinamice vor fi randate aici -->
+                        <div id="dynamic-categories-container" style="display: flex; flex-direction: column;"></div>
                     </div>
-                    <!-- Categoriile dinamice vor fi randate aici -->
-                    <div id="dynamic-categories-container"></div>
                 </div>
 
                 <div class="sidebar-section">
@@ -121,6 +123,8 @@
                         </div>
                         <div id="doc-viewer-content">
                             <div class="doc-viewer-header">
+                                <button id="mobile-back-btn" class="mobile-back-btn" onclick="closeMobileViewer()">⬅
+                                    Înapoi</button>
                                 <div class="doc-viewer-title-area">
                                     <h2 id="viewer-title">—</h2>
                                     <div class="doc-meta">
